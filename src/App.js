@@ -12,7 +12,7 @@ const App = () => {
     award: false
   })
   const [filterText, setFilterText] = useState('')
-  const [sortType, setSortType] = useState('')
+  const [sortType, setSortType] = useState('team')
 
   // useEffect(() => {
   //   fetch('https://scout-backend.herokuapp.com/api')
@@ -33,7 +33,7 @@ const App = () => {
     setNavActive({ rank: false, skill: false, award: true })
   }
   const handleChange = e => setFilterText(e.target.value.toUpperCase())
-  const handleSortClick = e => setSortType()
+  const handleSortClick = e => setSortType(e.target.getAttribute('sort'))
 
   return (
     <main>
@@ -45,16 +45,21 @@ const App = () => {
       {page === 0 && <Rankings
         data={data}
         filterText={filterText}
-        onChange={handleChange} />}
+        onChange={handleChange}
+        onClick={handleSortClick}
+        sortType={sortType} />}
       {page === 1 && <Skills
         data={data}
         filterText={filterText}
-        onChange={handleChange} />}
+        onChange={handleChange}
+        onClick={handleSortClick}
+        sortType={sortType} />}
       {page === 2 && <Awards
         data={data}
         filterText={filterText}
         onChange={handleChange}
-        onClick={handleSortClick} />}
+        onClick={handleSortClick}
+        sortType={sortType} />}
     </main>
   )
 }
@@ -86,26 +91,27 @@ const Header = ({ navActive, onRankClick, onSkillClick, onAwardClick }) => {
   )
 }
 
-const Rankings = ({ data, onChange, filterText }) => (
+const Rankings = ({ data, onChange, filterText, onClick, sortType }) => (
   <section>
     <h2>Rankings</h2>
     <FilterBar onChange={onChange} filterText={filterText} />
     <table>
       <thead>
         <tr>
-          <th>Team</th>
-          <th>Avg. OPR</th>
-          <th>Avg. DPR</th>
-          <th>Avg. CCWM</th>
-          <th>Top Match Score</th>
-          <th>Avg. Match Score</th>
-          <th>Win %</th>
-          <th>Autonomous Win %</th>
+          <th onClick={onClick} sort='team'>Team</th>
+          <th onClick={onClick} sort='avgOPR'>Avg. OPR</th>
+          <th onClick={onClick} sort='avgDPR'>Avg. DPR</th>
+          <th onClick={onClick} sort='avgCCWM'>Avg. CCWM</th>
+          <th onClick={onClick} sort='highScore'>Top Match Score</th>
+          <th onClick={onClick} sort='avgScore'>Avg. Match Score</th>
+          <th onClick={onClick} sort='winPer'>Win %</th>
+          <th onClick={onClick} sort='autoWinPer'>Autonomous Win %</th>
         </tr>
       </thead>
       <tbody>
         {data
           .filter(team => filterText ? filterText.includes(team.team) : true)
+          .sort((a, b) => b[sortType] - a[sortType])
           .map((team, i) => (
             <tr key={i}>
               <td>{team.team}</td>
@@ -123,22 +129,23 @@ const Rankings = ({ data, onChange, filterText }) => (
   </section>
 )
 
-const Skills = ({ data, onChange, filterText }) => (
+const Skills = ({ data, onChange, filterText, onClick, sortType }) => (
   <section>
     <h2>Skills</h2>
     <FilterBar onChange={onChange} filterText={filterText} />
     <table>
       <thead>
         <tr>
-          <th>Team</th>
-          <th>Top Driver Skills</th>
-          <th>Top Programming Skills</th>
-          <th>Top Skills Score</th>
+          <th onClick={onClick} sort='team'>Team</th>
+          <th onClick={onClick} sort='driverSkills'>Top Driver Skills</th>
+          <th onClick={onClick} sort='progSkills'>Top Programming Skills</th>
+          <th onClick={onClick} sort='totalSkills'>Top Skills Score</th>
         </tr>
       </thead>
       <tbody>
         {data
           .filter(team => filterText ? filterText.includes(team.team) : true)
+          .sort((a, b) => b[sortType] - a[sortType])
           .map((team, i) => (
             <tr key={i}>
               <td>{team.team}</td>
@@ -152,7 +159,7 @@ const Skills = ({ data, onChange, filterText }) => (
   </section>
 )
 
-const Awards = ({ data, onChange, filterText, onClick }) => (
+const Awards = ({ data, onChange, filterText, onClick, sortType }) => (
   <section>
     <h2>Awards</h2>
     <FilterBar onChange={onChange} filterText={filterText} />
@@ -170,6 +177,7 @@ const Awards = ({ data, onChange, filterText, onClick }) => (
       <tbody>
         {data
           .filter(team => filterText ? filterText.includes(team.team) : true)
+          .sort((a, b) => b[sortType] - a[sortType])
           .map((team, i) => (
             <tr key={i}>
               <td>{team.team}</td>
