@@ -135,13 +135,13 @@ const Rankings = ({ data, onChange, filterText, onClick, sortType, sortDir, onTe
           .map((team, i) => (
             <tr key={i}>
               <td onClick={onTeamClick} id='team'>{team.team}</td>
-              <td>{team.avgOPR && (team.avgOPR).toFixed(2)}</td>
-              <td>{team.avgDPR && (team.avgDPR).toFixed(2)}</td>
-              <td>{team.avgCCWM && (team.avgCCWM).toFixed(2)}</td>
+              <td>{team.avgOPR ? (team.avgOPR).toFixed(2) : 'n/a'}</td>
+              <td>{team.avgDPR ? (team.avgDPR).toFixed(2) : 'n/a'}</td>
+              <td>{team.avgCCWM ? (team.avgCCWM).toFixed(2) : 'n/a'}</td>
               <td>{team.highScore}</td>
-              <td>{team.avgScore && (team.avgScore).toFixed(2)}</td>
-              <td>{team.winPer && (team.winPer*100).toFixed(2)}%</td>
-              <td>{team.autoWinPer && (team.autoWinPer*100).toFixed(2)}%</td>
+              <td>{team.avgScore ? (team.avgScore).toFixed(2) : 'n/a'}</td>
+              <td>{team.winPer ? (team.winPer*100).toFixed(2) + '%' : 'n/a'}</td>
+              <td>{team.autoWinPer ? (team.autoWinPer*100).toFixed(2) + '%' : 'n/a'}</td>
             </tr>
         ))}
       </tbody>
