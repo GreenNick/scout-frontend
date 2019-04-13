@@ -1,56 +1,43 @@
-import React, { useState, useEffect } from 'react'
+import React, {
+  useState,
+  useEffect,
+  FormEventHandler,
+  MouseEventHandler
+} from 'react'
 import { Pie, Bar } from 'react-chartjs-2'
 import './App.css'
 
-const App = () => {
-  const [page, setPage] = useState(0)
+const App: React.FC = () => {
+  const [page, setPage] = React.useState(0)
   const [data, setData] = useState([])
-  const [navActive, setNavActive] = useState({
-    rank: true,
-    skill: false,
-    award: false
-  })
   const [filterText, setFilterText] = useState('')
   const [sortType, setSortType] = useState('team')
   const [sortDir, setSortDir] = useState(true)
   const [activeTeam, setActiveTeam] = useState('')
 
-  useEffect(() => {
+  useEffect((): void => {
     fetch('https://scout-backend.herokuapp.com/api')
       .then(res => res.json())
       .then(res => setData(res))
   }, [true])
 
-  const handleRankClick = () => {
-    setPage(0)
-    setNavActive({ rank: true, skill: false, award: false })
-  }
-  const handleSkillClick = () => {
-    setPage(1)
-    setNavActive({ rank: false, skill: true, award: false })
-  }
-  const handleAwardClick = () => {
-    setPage(2)
-    setNavActive({ rank: false, skill: false, award: true })
-  }
-  const handleChange = e => setFilterText(e.target.value.toUpperCase())
-  const handleSortClick = e => {
+  const handleChange: FormEventHandler<HTMLInputElement> = e =>
+    setFilterText(e.currentTarget.value.toUpperCase())
+
+  const handleSortClick: MouseEventHandler<HTMLTableHeaderCellElement> = e => {
     setSortDir(!sortDir)
-    setSortType(e.target.getAttribute('sort'))
+    setSortType(e.currentTarget.getAttribute('id') as string)
   }
-  const handleTeamClick = e => {
-    setActiveTeam(e.target.innerText)
-    setNavActive({ rank: false, skill: false, award: false })
+
+  const handleTeamClick: MouseEventHandler<HTMLTableDataCellElement> = e => {
+    setActiveTeam(e.currentTarget.innerText)
     setPage(3)
   }
 
   return (
     <main>
       <Header
-        navActive={navActive}
-        onRankClick={handleRankClick}
-        onSkillClick={handleSkillClick}
-        onAwardClick={handleAwardClick}
+        onPageClick={(index: number) => setPage(index)}
         page={page}
         activeTeam={activeTeam} />
       {page === 0 && <Rankings
@@ -84,11 +71,29 @@ const App = () => {
   )
 }
 
-const FilterBar = ({ onChange, filterText }) => (
+interface FilterProps {
+  filterText: string
+  onChange: FormEventHandler<HTMLInputElement>
+}
+
+const FilterBar: React.FC<FilterProps> = ({
+  filterText,
+  onChange
+}) => (
   <input onChange={onChange} value={filterText} type='text' placeholder='Filter...' />
 )
 
-const Header = ({ navActive, onRankClick, onSkillClick, onAwardClick, page, activeTeam }) => {
+interface HeaderProps {
+  page: number
+  activeTeam: string
+  onPageClick: (index: number) => void
+}
+
+const Header: React.FC<HeaderProps> = ({
+  page,
+  activeTeam,
+  onPageClick
+}) => {
   const styleActive = { background: 'hsl(291, 64%, 60%)' }
 
   return (
@@ -97,35 +102,53 @@ const Header = ({ navActive, onRankClick, onSkillClick, onAwardClick, page, acti
       <nav>
         <ul>
           <li
-            style={navActive.rank ? styleActive : {}}
-            onClick={onRankClick}>Rankings</li>
+            style={page === 0 ? styleActive : {}}
+            onClick={() => onPageClick(0)}>Rankings</li>
           <li
-            style={navActive.skill ? styleActive : {}}
-            onClick={onSkillClick}>Skills</li>
+            style={page === 1 ? styleActive : {}}
+            onClick={() => onPageClick(1)}>Skills</li>
           <li
-            style={navActive.award ? styleActive : {}}
-            onClick={onAwardClick}>Awards</li>
+            style={page === 2 ? styleActive : {}}
+            onClick={() => onPageClick(2)}>Awards</li>
         </ul>
       </nav>
     </header>
   )
 }
 
-const Rankings = ({ data, onChange, filterText, onClick, sortType, sortDir, onTeamClick }) => (
+interface PagesProps {
+  data: any[]
+  filterText: string
+  sortType: string
+  sortDir: boolean
+  onChange: FormEventHandler<HTMLInputElement>
+  onClick: MouseEventHandler<HTMLTableHeaderCellElement>
+  onTeamClick: MouseEventHandler<HTMLTableDataCellElement>
+}
+
+const Rankings: React.FC<PagesProps> = ({
+  data,
+  filterText,
+  sortType,
+  sortDir,
+  onChange,
+  onClick,
+  onTeamClick
+}) => (
   <section>
     <h2>Rankings</h2>
     <FilterBar onChange={onChange} filterText={filterText} />
     <table>
       <thead>
         <tr>
-          <th onClick={onClick} sort='team'>Team</th>
-          <th onClick={onClick} sort='avgOPR'>Avg. OPR</th>
-          <th onClick={onClick} sort='avgDPR'>Avg. DPR</th>
-          <th onClick={onClick} sort='avgCCWM'>Avg. CCWM</th>
-          <th onClick={onClick} sort='highScore'>Top Match Score</th>
-          <th onClick={onClick} sort='avgScore'>Avg. Match Score</th>
-          <th onClick={onClick} sort='winPer'>Win %</th>
-          <th onClick={onClick} sort='autoWinPer'>Autonomous Win %</th>
+          <th onClick={onClick} id='team'>Team</th>
+          <th onClick={onClick} id='avgOPR'>Avg. OPR</th>
+          <th onClick={onClick} id='avgDPR'>Avg. DPR</th>
+          <th onClick={onClick} id='avgCCWM'>Avg. CCWM</th>
+          <th onClick={onClick} id='highScore'>Top Match Score</th>
+          <th onClick={onClick} id='avgScore'>Avg. Match Score</th>
+          <th onClick={onClick} id='winPer'>Win %</th>
+          <th onClick={onClick} id='autoWinPer'>Autonomous Win %</th>
         </tr>
       </thead>
       <tbody>
@@ -134,7 +157,7 @@ const Rankings = ({ data, onChange, filterText, onClick, sortType, sortDir, onTe
           .sort((a, b) => sortDir ? b[sortType] - a[sortType] : a[sortType] - b[sortType])
           .map((team, i) => (
             <tr key={i}>
-              <td onClick={onTeamClick} id='team'>{team.team}</td>
+              <td onClick={onTeamClick} className='team'>{team.team}</td>
               <td>{team.avgOPR ? (team.avgOPR).toFixed(2) : 'n/a'}</td>
               <td>{team.avgDPR ? (team.avgDPR).toFixed(2) : 'n/a'}</td>
               <td>{team.avgCCWM ? (team.avgCCWM).toFixed(2) : 'n/a'}</td>
@@ -149,17 +172,25 @@ const Rankings = ({ data, onChange, filterText, onClick, sortType, sortDir, onTe
   </section>
 )
 
-const Skills = ({ data, onChange, filterText, onClick, sortType, sortDir, onTeamClick }) => (
+const Skills: React.FC<PagesProps> = ({
+  data,
+  filterText,
+  sortType,
+  sortDir,
+  onChange,
+  onClick,
+  onTeamClick
+}) => (
   <section>
     <h2>Skills</h2>
     <FilterBar onChange={onChange} filterText={filterText} />
     <table>
       <thead>
         <tr>
-          <th onClick={onClick} sort='team'>Team</th>
-          <th onClick={onClick} sort='driverSkills'>Top Driver Skills</th>
-          <th onClick={onClick} sort='progSkills'>Top Programming Skills</th>
-          <th onClick={onClick} sort='totalSkills'>Top Skills Score</th>
+          <th onClick={onClick} id='team'>Team</th>
+          <th onClick={onClick} id='driverSkills'>Top Driver Skills</th>
+          <th onClick={onClick} id='progSkills'>Top Programming Skills</th>
+          <th onClick={onClick} id='totalSkills'>Top Skills Score</th>
         </tr>
       </thead>
       <tbody>
@@ -168,7 +199,7 @@ const Skills = ({ data, onChange, filterText, onClick, sortType, sortDir, onTeam
           .sort((a, b) => sortDir ? b[sortType] - a[sortType] : a[sortType] - b[sortType])
           .map((team, i) => (
             <tr key={i}>
-              <td onClick={onTeamClick} id='team'>{team.team}</td>
+              <td onClick={onTeamClick} className='team'>{team.team}</td>
               <td>{team.driverSkills}</td>
               <td>{team.progSkills}</td>
               <td>{team.totalSkills}</td>
@@ -179,20 +210,28 @@ const Skills = ({ data, onChange, filterText, onClick, sortType, sortDir, onTeam
   </section>
 )
 
-const Awards = ({ data, onChange, filterText, onClick, sortType, sortDir, onTeamClick }) => (
+const Awards: React.FC<PagesProps> = ({
+  data,
+  filterText,
+  sortType,
+  sortDir,
+  onChange,
+  onClick,
+  onTeamClick
+}) => (
   <section>
     <h2>Awards</h2>
     <FilterBar onChange={onChange} filterText={filterText} />
     <table>
       <thead>
         <tr>
-          <th onClick={onClick} sort='team'>Team</th>
-          <th onClick={onClick} sort='totalAwards'>Total Awards</th>
-          <th onClick={onClick} sort='awardChamp'>Tournament Champion</th>
-          <th onClick={onClick} sort='awardSkills'>Robot Skills Champion</th>
-          <th onClick={onClick} sort='awardExcel'>Excellence Award</th>
-          <th onClick={onClick} sort='awardDesign'>Design Award</th>
-          <th onClick={onClick} sort='awardJudge'>Judges Award</th>
+          <th onClick={onClick} id='team'>Team</th>
+          <th onClick={onClick} id='totalAwards'>Total Awards</th>
+          <th onClick={onClick} id='awardChamp'>Tournament Champion</th>
+          <th onClick={onClick} id='awardSkills'>Robot Skills Champion</th>
+          <th onClick={onClick} id='awardExcel'>Excellence Award</th>
+          <th onClick={onClick} id='awardDesign'>Design Award</th>
+          <th onClick={onClick} id='awardJudge'>Judges Award</th>
         </tr>
       </thead>
       <tbody>
@@ -201,7 +240,7 @@ const Awards = ({ data, onChange, filterText, onClick, sortType, sortDir, onTeam
           .sort((a, b) => sortDir ? b[sortType] - a[sortType] : a[sortType] - b[sortType])
           .map((team, i) => (
             <tr key={i}>
-              <td onClick={onTeamClick} id='team'>{team.team}</td>
+              <td onClick={onTeamClick} className='team'>{team.team}</td>
               <td>{team.totalAwards}</td>
               <td>{team.awardChamp}</td>
               <td>{team.awardSkills}</td>
@@ -215,7 +254,15 @@ const Awards = ({ data, onChange, filterText, onClick, sortType, sortDir, onTeam
   </section>
 )
 
-const TeamPage = ({ data, activeTeam }) => {
+interface TeamProps {
+  data: any[]
+  activeTeam: string
+}
+
+const TeamPage: React.FC<TeamProps> = ({
+  data,
+  activeTeam
+}) => {
   const teamData = data.filter(team => team.team === activeTeam)[0]
   
   return (

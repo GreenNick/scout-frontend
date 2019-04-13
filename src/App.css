@@ -148,7 +148,7 @@ input:focus {
   padding: 0 0 10px 0;
 }
 
-#team {
+.team {
   cursor: pointer;
   color: hsl(282, 68%, 38%);
   text-decoration: underline;
